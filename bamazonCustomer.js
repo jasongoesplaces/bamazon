@@ -18,28 +18,8 @@ connection.connect(function(err) {
     start();
 });
 
-// begin customer interaction
-function start() {
-
-    inquirer.prompt([{
-
-        type: "confirm",
-        name: "confirm",
-        message: "Welcome to Bamazon! Would you like to check out our products?",
-        default: true
-
-    }]).then(function(user) {
-        if (user.confirm === true) {
-            products();
-        } else {
-            console.log("Thanks for visiting!");
-            return false
-        }
-    });
-}
-
 // display products
-function products() {
+function start() {
 
     // create table to display products
     var table = new Table({
@@ -47,10 +27,10 @@ function products() {
         colWidths: [10, 30, 30, 30, 30]
     });
 
-    pullProducts();
+    products();
 
     //pull products from database
-    function pullProducts() {
+    function products() {
 
         connection.query("SELECT * FROM products", function(err, res) {
             for (var i = 0; i < res.length; i++) {
@@ -66,32 +46,14 @@ function products() {
             );
           }
             console.log("");
+            console.log("--------------------------------------- Welcome to Bamazon ---------------------------------------");
             console.log("------------------------------------------ Our Products ------------------------------------------");
             console.log("");
             console.log(table.toString());
             console.log("");
-            buyItem();
+            itemSelect();
         });
     }
-}
-
-// ask customer if they would like to purchase a product
-function buyItem() {
-
-    inquirer.prompt([{
-
-        type: "confirm",
-        name: "continue",
-        message: "Would you like to buy an item?",
-        default: true
-
-    }]).then(function(user) {
-        if (user.continue === true) {
-            itemSelect();
-        } else {
-            console.log("Thanks for stopping in!");
-        }
-    });
 }
 
 // ask customer which product they want to purchase and in what quantity
@@ -160,20 +122,40 @@ function confirmPurchase(stockUpdate, purchase) {
 
             // update database to reflect new stock
             connection.query("UPDATE products SET ? WHERE ?", [{
-                stock_quantity: stockUpdate
+                stock: stockUpdate
             }, {
-                item_id: purchase
+                id: purchase
             }], function(err, res) {});
 
             console.log("------------------------------------------");
             console.log("Purchase succesful.");
             console.log("------------------------------------------");
-            start();
+            continueShopping();
         } else {
             console.log("------------------------------------------");
             console.log("Transaction cancelled.");
             console.log("------------------------------------------");
+            continueShopping();
+        }
+    });
+}
+
+// ask customer if they wish to continue shopping
+function continueShopping() {
+
+    inquirer.prompt([{
+
+        type: "confirm",
+        name: "continue",
+        message: "Would you like to continue shopping?",
+        default: true
+
+    }]).then(function(user) {
+        if (user.continue === true) {
             start();
+        } else {
+            console.log("Thanks for visiting!");
+            connection.end()
         }
     });
 }
