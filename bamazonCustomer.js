@@ -1,65 +1,56 @@
-//=================================Setup Required Variables===============================
-
+// required variables
 var Table = require('cli-table');
 var mysql = require('mysql');
 var inquirer = require('inquirer');
 
-//=================================Connect to SQL database===============================
-
+// connect to database
 var connection = mysql.createConnection({
     host: "localhost",
     port: 8889,
-
-    // Your username
     user: "root",
-
-    // Your password
     password: "root",
     database: "bamazonDB"
 });
 
 connection.connect(function(err) {
     if (err) throw err;
-    console.log("connected as id " + connection.threadId);
-    startPrompt();
+    console.log("connected");
+    start();
 });
 
-//=================================Inquirer introduction===============================
-
-function startPrompt() {
+// begin customer interaction
+function start() {
 
     inquirer.prompt([{
 
         type: "confirm",
         name: "confirm",
-        message: "Welcome to Bamazon! Would you like to view our inventory?",
+        message: "Welcome to Bamazon! Would you like to check out our products?",
         default: true
 
     }]).then(function(user) {
         if (user.confirm === true) {
-            inventory();
+            products();
         } else {
-            console.log("Thank you! Come back soon!");
+            console.log("Thanks for visiting!");
+            return false
         }
     });
 }
 
-//=================================Inventory===============================
+// display products
+function products() {
 
-function inventory() {
-
-    // instantiate
+    // create table to display products
     var table = new Table({
         head: ['ID', 'Item', 'Department', 'Price', 'Stock'],
         colWidths: [10, 30, 30, 30, 30]
     });
 
-    listInventory();
+    pullProducts();
 
-    // table is an Array, so you can `push`, `unshift`, `splice` and friends
-    function listInventory() {
-
-        //Variable creation from DB connection
+    //pull products from database
+    function pullProducts() {
 
         connection.query("SELECT * FROM products", function(err, res) {
             for (var i = 0; i < res.length; i++) {
@@ -79,14 +70,13 @@ function inventory() {
             console.log("");
             console.log(table.toString());
             console.log("");
-            continuePrompt();
+            buyItem();
         });
     }
 }
 
-//=================================Inquirer user purchase===============================
-
-function continuePrompt() {
+// ask customer if they would like to purchase a product
+function buyItem() {
 
     inquirer.prompt([{
 
@@ -97,99 +87,93 @@ function continuePrompt() {
 
     }]).then(function(user) {
         if (user.continue === true) {
-            selectionPrompt();
+            itemSelect();
         } else {
-            console.log("Thank you! Come again!");
+            console.log("Thanks for stopping in!");
         }
     });
 }
 
-//=================================Item selection and Quantity desired===============================
-
-function selectionPrompt() {
+// ask customer which product they want to purchase and in what quantity
+function itemSelect() {
 
     inquirer.prompt([{
 
             type: "input",
             name: "inputId",
-            message: "Please enter the ID number of the item you would like to purchase.",
+            message: "Please enter the ID number of the product.",
         },
         {
             type: "input",
-            name: "inputNumber",
-            message: "How many units of this item would you like to purchase?",
+            name: "inputQuantity",
+            message: "How many would you like?",
 
         }
     ]).then(function(userPurchase) {
 
-        //connect to database to find stock_quantity in database. If user quantity input is greater than stock, decline purchase.
-
-        connection.query("SELECT * FROM products WHERE item_id=?", userPurchase.inputId, function(err, res) {
+        // check database to see if product is in stock
+        connection.query("SELECT * FROM products WHERE id=?", userPurchase.inputId, function(err, res) {
             for (var i = 0; i < res.length; i++) {
 
-                if (userPurchase.inputNumber > res[i].stock_quantity) {
+                if (userPurchase.inputQuantity > res[i].stock) {
 
                     console.log("------------------------------------------");
                     console.log("Sorry, we are currently out of stock of this item.");
                     console.log("------------------------------------------");
-                    startPrompt();
+                    start();
 
                 } else {
-                    //list item information for user for confirm prompt
                     console.log("------------------------------------------");
                     console.log("Purchase added to cart.");
                     console.log("------------------------------------------");
-                    console.log("You've selected:");
-                    console.log("----------------");
-                    console.log("Item: " + res[i].product_name);
-                    console.log("Department: " + res[i].department_name);
+                    console.log("Your cart:");
+                    console.log("------------------------------------------");
+                    console.log("Item: " + res[i].product);
+                    console.log("Department: " + res[i].department);
                     console.log("Price: " + res[i].price);
-                    console.log("Quantity: " + userPurchase.inputNumber);
-                    console.log("----------------");
-                    console.log("Total: " + res[i].price * userPurchase.inputNumber);
+                    console.log("Quantity: " + userPurchase.inputQuantity);
+                    console.log("------------------------------------------");
+                    console.log("Total: " + res[i].price * userPurchase.inputQuantity);
                     console.log("------------------------------------------");
 
-                    var newStock = (res[i].stock_quantity - userPurchase.inputNumber);
-                    var purchaseId = (userPurchase.inputId);
-                    //console.log(newStock);
-                    confirmPrompt(newStock, purchaseId);
+                    var stockUpdate = (res[i].stock - userPurchase.inputQuantity);
+                    var purchase = (userPurchase.inputId);
+                    confirmPurchase(stockUpdate, purchase);
                 }
             }
         });
     });
 }
 
-//=================================Confirm Purchase===============================
-
-function confirmPrompt(newStock, purchaseId) {
+// have customer confirm their purchase
+function confirmPurchase(stockUpdate, purchase) {
 
     inquirer.prompt([{
 
         type: "confirm",
         name: "confirmPurchase",
-        message: "Check the item and quantity, then confirm your purchase.",
+        message: "Is your cart correct?",
         default: true
 
-    }]).then(function(userConfirm) {
-        if (userConfirm.confirmPurchase === true) {
+    }]).then(function(confirm) {
+        if (confirm.confirmPurchase === true) {
 
-            //if user confirms purchase, update mysql database with new stock quantity by subtracting user quantity purchased.
-
+            // update database to reflect new stock
             connection.query("UPDATE products SET ? WHERE ?", [{
-                stock_quantity: newStock
+                stock_quantity: stockUpdate
             }, {
-                item_id: purchaseId
+                item_id: purchase
             }], function(err, res) {});
 
             console.log("------------------------------------------");
             console.log("Purchase succesful.");
             console.log("------------------------------------------");
-            startPrompt();
+            start();
         } else {
             console.log("------------------------------------------");
-            console.log("Purchase cancelled.");
+            console.log("Transaction cancelled.");
             console.log("------------------------------------------");
-            startPrompt();
+            start();
         }
     });
 }
