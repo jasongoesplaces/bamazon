@@ -10,6 +10,10 @@ Bamazon is command line based store front similar to amazon.
 - Download MySQL and a MySQL client. 
 - Run the code from the bamazon.sql in your MySQL client
 - In your terminal or command line change directory to the bamazon folder
+- Run the following code in the terminal/command line:
+    ```
+    npm install
+    ```
 
 
 
