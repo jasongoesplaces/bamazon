@@ -13,7 +13,7 @@ Bamazon is command line based store front similar to amazon.
 
 
 
-##### Customer View
+## Customer View
 
 To run customer view simply type the following code into your terminal or command line and hit enter:
 ```
@@ -24,7 +24,7 @@ and allow the user to purchase items from the store.
 
 
 
-##### Manager View
+## Manager View
 
 To run manger view type the following code into your terminal/command line and hit enter:
 ```
@@ -40,7 +40,7 @@ Manager view gives the user four options.
 
 
 
-##### Demo
+## Demo
 
 Checkout out the screenshots folder to see some screenshots of both customer and manager mode in action.
 
