@@ -49,7 +49,7 @@ function managerMode() {
 		} else if (input.option === 'addInventory') {
 			addInventory();
 		} else if (input.option === 'newProduct') {
-			createNewProduct();
+			newProduct();
 		} 
 	})
 }
@@ -104,7 +104,7 @@ function lowInventory() {
     //pull products from database
     function lowInventoryList() {
 
-        connection.query('SELECT * FROM products WHERE stock_quantity < 50', function(err, res) {
+        connection.query('SELECT * FROM products WHERE stock < 50', function(err, res) {
             for (var i = 0; i < res.length; i++) {
 
                 var id = res[i].id,
@@ -126,6 +126,98 @@ function lowInventory() {
         });
     }
 }
+
+// allows user to add inventory
+function addInventory() {
+
+	// user selects product and chooses quantity to add to stock
+	inquirer.prompt([
+		{
+			type: 'input',
+			name: 'id',
+			message: 'Please enter the Item ID for stock_count update.',
+			filter: Number
+		},
+		{
+			type: 'input',
+			name: 'quantity',
+			message: 'How many would you like to add?',
+			filter: Number
+		}
+	]).then(function(input) {
+
+		var product = input.id;
+		var newStock = input.quantity;
+
+        // checks database for product
+		var queryStr = 'SELECT * FROM products WHERE ?';
+
+		connection.query('SELECT * FROM products WHERE ?', {id: product}, function(err, data) {
+			if (err) throw err;
+
+			if (data.length === 0) {
+				console.log('Invalid ID. Please try again.');
+				addInventory();
+
+			} else {
+				var productDetails = data[0];
+
+				console.log('Adding to inventory');
+
+				var query = 'UPDATE products SET stock = ' + (productDetails.stock + newStock) + ' WHERE id = ' + product;
+
+				// updates inventory in database
+				connection.query(query, function(err, data) {
+					if (err) throw err;
+
+					console.log('Stock count has been updated to ' + (productDetails.stock + newStock) + '.');
+					console.log("------------------------------------------");
+
+				newTask()
+				})
+			}
+		})
+	})
+}
+
+// allows user to add new products to the database
+function newProduct() {
+
+	inquirer.prompt([
+		{
+			type: 'input',
+			name: 'product',
+			message: 'Enter new product name.',
+		},
+		{
+			type: 'input',
+			name: 'department',
+			message: 'Enter department for new product.',
+		},
+		{
+			type: 'input',
+			name: 'price',
+			message: 'Enter Price.',
+		},
+		{
+			type: 'input',
+			name: 'stock',
+			message: 'Enter current stock.',
+        }
+        
+	]).then(function(input) {
+
+		// new product is added to the database
+		connection.query('INSERT INTO products SET ?', input, function (error, results, fields) {
+			if (error) throw error;
+
+            console.log('The new product has been added')
+
+        newTask()
+		});
+	})
+}
+
 
 // check if user wishes to complete another task
 function newTask() {
