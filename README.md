@@ -46,5 +46,25 @@ Manager view gives the user four options.
 
 ## Demo
 
-Checkout out the screenshots folder to see some screenshots of both customer and manager mode in action.
+####Here are some screenshots of the app in action:
 
+Customer View #1
+![screenshot](screenshots/CustomerView1.png "Customer View 1")
+
+Customer View #2
+![screenshot](screenshots/CustomerView2.png "Customer View 2")
+
+Manager View #1
+![screenshot](screenshots/ManagerView1.png "Manager View 1")
+
+Manager View #2
+![screenshot](screenshots/ManagerView2.png "Manager View 2")
+
+Manager View #3
+![screenshot](screenshots/ManagerView3.png "Manager View 3")
+
+Manager View #4
+![screenshot](screenshots/ManagerView4.png "Manager View 4")
+
+Manager View #5
+![screenshot](screenshots/ManagerView5.png "Manager View 5")
