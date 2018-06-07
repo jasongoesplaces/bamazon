@@ -46,7 +46,7 @@ Manager view gives the user four options.
 
 ## Demo
 
-####Here are some screenshots of the app in action:
+Here are some screenshots of the app in action:
 
 Customer View #1
 ![screenshot](screenshots/CustomerView1.png "Customer View 1")
